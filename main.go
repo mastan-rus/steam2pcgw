@@ -206,7 +206,7 @@ func main() {
 	} else {
 		outputFile.WriteString(game.Data.SupportInfo.URL)
 	}
-	outputFile.WriteString("\n|hltb         = \n|igdb         = <!-- Only needs to be set if there is no IGDB reception row -->\n|lutris       = \n|mobygames    = \n|strategywiki = \n|wikipedia    = \n|winehq       = \n|license      = commercial\n}}")
+	outputFile.WriteString("\n|hltb         = \n|lutris       = \n|mobygames    = \n|strategywiki = \n|wikipedia    = \n|winehq       = \n|license      = commercial\n}}")
 
 	fmt.Println("* [9/25] Processing introduction...")
 	outputFile.WriteString("\n\n{{Introduction\n|introduction      = ")
@@ -276,7 +276,7 @@ func main() {
 		editionList += " also available"
 	}
 
-	outputFile.WriteString(fmt.Sprintf("{{Availability/row| Steam | %s | Steam | %s | | %s ", gameId, editionList, platforms))
+	outputFile.WriteString(fmt.Sprintf("{{Availability/row| Steam | %s | Steam | %s |  | %s ", gameId, editionList, platforms))
 
 	if len(game.Data.Packages) == 0 {
 		outputFile.WriteString("| unavailable ")
@@ -285,7 +285,7 @@ func main() {
 	outputFile.WriteString("}}")
 
 	for store, data := range game.Data.Stores {
-		outputFile.WriteString(fmt.Sprintf("\n{{Availability/row| %s | %s | DRM | %s | | %s }}", store, data.URL, editionList, data.Platforms))
+		outputFile.WriteString(fmt.Sprintf("\n{{Availability/row| %s | %s | DRM | %s |  | %s }}", store, data.URL, editionList, data.Platforms))
 	}
 
 	outputFile.WriteString("\n}}")
@@ -324,6 +324,7 @@ func main() {
 
 	outputFile.WriteString("{{Monetization")
 	outputFile.WriteString("\n|ad-supported                = ")
+	outputFile.WriteString("\n|cross-game bonus            = ")
 	outputFile.WriteString("\n|dlc                         = ")
 	outputFile.WriteString("\n|expansion pack              = ")
 	outputFile.WriteString("\n|freeware                    = ")
@@ -361,7 +362,7 @@ func main() {
 	outputFile.WriteString("\n}}")
 
 	fmt.Println("* [13/25] Processing DLCs!")
-	outputFile.WriteString("\n\n{{DLC|\n<!-- DLC rows goes below: -->\n}}")
+	outputFile.WriteString("\n\n{{DLC|\n<!-- DLC rows goes below: -->\n\n}}")
 
 	fmt.Println("* [14/25] Processing Config File Location!")
 
@@ -396,9 +397,7 @@ func main() {
 	fmt.Println("* [16/25] Processing Save Game Sync!")
 
 	outputFile.WriteString("\n\n===[[Glossary:Save game cloud syncing|Save game cloud syncing]]===\n{{Save game cloud syncing\n")
-	outputFile.WriteString(`|discord                   = 
-|discord notes             = 
-|epic games launcher       = 
+	outputFile.WriteString(`|epic games launcher       = 
 |epic games launcher notes = 
 |gog galaxy                = 
 |gog galaxy notes          = 
@@ -514,14 +513,19 @@ func main() {
 |xbox prompts notes        = 
 |impulse triggers          = unknown
 |impulse triggers notes    = 
-|dualshock 4               = unknown
-|dualshock 4 notes         = 
-|dualshock prompts         = unknown
-|dualshock prompts notes   = 
+|playstation controllers   = unknown
+|playstation controller models = 
+|playstation controllers notes = 
+|playstation prompts       = unknown
+|playstation prompts notes = 
 |light bar support         = unknown
 |light bar support notes   = 
-|dualshock 4 modes         = unknown
-|dualshock 4 modes notes   = 
+|dualsense adaptive trigger support = unknown
+|dualsense adaptive trigger support notes =
+|dualsense haptics support  = unknown
+|dualsense haptics support notes =
+|playstation connection modes = 
+|playstation connection modes notes = 
 |tracked motion controllers= unknown
 |tracked motion controllers notes = 
 |tracked motion prompts    = unknown
@@ -534,6 +538,8 @@ func main() {
 |controller hotplug notes  = 
 |haptic feedback           = unknown
 |haptic feedback notes     = 
+|digital movement supported = unknown
+|digital movement supported notes= 
 |simultaneous input        = unknown
 |simultaneous input notes  = 
 |steam input api           = unknown
@@ -618,7 +624,7 @@ func main() {
 	fmt.Println("* [21/25] Processing Network!")
 
 	if game.HasCategory(Multiplayer) {
-		outputFile.WriteString("\n\n==Network==")
+		outputFile.WriteString("\n==Network==")
 		outputFile.WriteString("\n{{Network/Multiplayer")
 		outputFile.WriteString("\n|local play           = ")
 		if game.HasCategory(LocalMultiPlayer) || game.HasCategory(LocalCoOp) {
@@ -655,7 +661,7 @@ func main() {
 |asynchronous         = 
 |asynchronous notes   = 
 }}`)
-		outputFile.WriteString("\n{{Network/Connections")
+		outputFile.WriteString("{{Network/Connections")
 		outputFile.WriteString(`
 |matchmaking        = 
 |matchmaking notes  = 
@@ -671,12 +677,13 @@ func main() {
 |tcp  = 
 |udp  = 
 |upnp = 
-}}`)
+}}
+`)
 	}
 
 	fmt.Println("* [22/25] Processing API!")
 
-	outputFile.WriteString("\n\n==Other information==\n===API===\n{{API\n")
+	outputFile.WriteString("\n==Other information==\n===API===\n{{API\n")
 	outputFile.WriteString(fmt.Sprintf("|direct3d versions      = %s\n", game.FindDirectX()))
 	outputFile.WriteString(fmt.Sprintf(`|direct3d notes         = 
 |directdraw versions    = 
@@ -714,7 +721,7 @@ func main() {
 |linux executable notes = 
 |mac os powerpc app     = false
 |mac os 68k app         = false 
-|mac os executable notes=
+|mac os executable notes= 
 }}`,
 		GetExeBit(true, "windows", game.Data.Platforms, game.Data.PCRequirements), GetExeBit(false, "windows", game.Data.Platforms, game.Data.PCRequirements),
 		GetExeBit(true, "mac", game.Data.Platforms, game.Data.MACRequirements), GetExeBit(false, "mac", game.Data.Platforms, game.Data.MACRequirements),
@@ -746,7 +753,7 @@ func main() {
 	outputFile.WriteString(game.OutputSpecs())
 
 	fmt.Println("* [25/25] Processing References!")
-	outputFile.WriteString("\n{{References}}")
+	outputFile.WriteString("\n{{References}}\n")
 
 	outputFile.Close()
 
