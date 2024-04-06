@@ -2,10 +2,10 @@ package main
 
 const (
 	APP_NAME = "Steam 2 PCGW Converter"
-	VERSION  = "v0.0.74"
+	VERSION  = "v0.0.75"
 	API_LINK = "https://store.steampowered.com/api/appdetails?appids="
 	LOCALE   = "&l=english"
-	GH_LINK  = "https://github.com/phyziyx/steam2pcgw"
+	GH_LINK  = "https://github.com/mastan-rus/steam2pcgw"
 )
 
 type GenreId int

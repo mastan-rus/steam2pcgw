@@ -424,72 +424,51 @@ func (game *Game) parseAvailability(htmlString string) {
 	f(doc)
 }
 
-func (game *Game) parseReviews(htmlString string) {
-	reviewsRE := regexp.MustCompile(`<h2>Reviews<\/h2><a class='gReview.+<\/section>`)
-	reviews := reviewsRE.FindString(htmlString)
-	doc, _ := html.Parse(strings.NewReader(reviews))
-
-	var f func(n *html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "a" {
-			for _, a := range n.Attr {
-				if a.Key != "class" || !strings.Contains(a.Val, "gReview") {
-					continue
-				}
-
-				var href string
-				for _, b := range n.Attr {
-					if b.Key == "href" {
-						href = b.Val
-					}
-				}
-
-				for c := n.FirstChild; c != nil; c = c.NextSibling {
-					if c.Type != html.ElementNode || c.Data != "div" {
-						continue
-					}
-
-					for _, d := range c.Attr {
-						if d.Key != "class" || d.Val != "gReview__score" {
-							continue
-						}
-
-						for e := c.NextSibling; e != nil; e = e.NextSibling {
-							if e.Type != html.ElementNode || e.Data != "div" {
-								continue
-							}
-
-							for _, f := range e.Attr {
-								if f.Key != "class" && f.Val != "gReview__details" {
-									continue
-								}
-
-								for g := e.FirstChild; g != nil; g = g.NextSibling {
-									if g.Type != html.ElementNode || g.Data != "h3" {
-										continue
-									}
-
-									for h := g.FirstChild; h != nil; h = h.NextSibling {
-										if h.Type != html.TextNode {
-											continue
-										}
-
-										game.AddRating(h.Data, g.FirstChild.Data, href)
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
-		}
+func regexSubstr(input string, format string) (string, error) {
+	infoRe := regexp.MustCompile(format)
+	match := infoRe.FindSubmatch([]byte(input))
+	if match == nil {
+		return "", errors.New("not found")
 	}
 
-	f(doc)
+	return string(match[1]), nil
+}
+
+func (game *Game) parseReviews(htmlString string) {
+	body, _ := regexSubstr(htmlString, `var page = (.+);`)
+	var allBody []interface{}
+	json.Unmarshal([]byte(body), &allBody)
+
+	if allBody == nil {
+		return
+	}
+
+	mainBody := allBody[1]
+
+	details := mainBody.(map[string]interface{})["detail"]
+	if details == nil {
+		return
+	}
+	reviews := details.(map[string]interface{})["reviews"]
+	if reviews == nil {
+		return
+	}
+
+	reviewList := reviews.([]interface{})
+
+	for _, v := range reviewList {
+		nn := v.(map[string]interface{})
+		count := nn["count"].(float64)
+
+		if count <= 4 {
+			continue
+		}
+
+		positive := (int64)(nn["positive"].(float64))
+		source := nn["source"].(string)
+		url := nn["url"].(string)
+		game.AddRating(source, strconv.FormatInt((positive), 10), url)
+	}
 }
 
 func (game *Game) AddStore(name, platforms, link string) {

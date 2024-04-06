@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"regexp"
@@ -9,23 +10,30 @@ import (
 )
 
 func main() {
+	getver := flag.Bool("v", false, "version")
+	steamId := flag.String("steamid", "", "Steam app ID")
+	flag.Parse()
 
-	if len(os.Args) > 1 && strings.ToLower(os.Args[1]) == "-v" {
+	if *getver {
 		fmt.Println(APP_NAME, VERSION, "(", GH_LINK, ")")
 		return
 	}
 
 	fmt.Println("Running", APP_NAME, VERSION, "(", GH_LINK, ")")
 
-	gameId := ""
 	var err error = nil
+	gameId := ""
 
-	// Ask for input from the user
-	for len(gameId) == 0 || err != nil {
-		print("Insert the Steam app ID: ")
-		gameId, err = TakeInput()
-		if err != nil {
-			fmt.Println(err)
+	if len(*steamId) != 0 {
+		gameId = *steamId
+	} else {
+		// Ask for input from the user
+		for len(gameId) == 0 || err != nil {
+			print("Insert the Steam app ID: ")
+			gameId, err = TakeInput()
+			if err != nil {
+				fmt.Println(err)
+			}
 		}
 	}
 
@@ -114,9 +122,19 @@ func main() {
 	fmt.Println("* [6/26] Adding reception score")
 	outputFile.WriteString("\n|reception    = \n{{Infobox game/row/reception|Metacritic|")
 	if game.Data.Metacritic != nil {
-		outputFile.WriteString(fmt.Sprintf("%s|%d}}", strings.TrimPrefix(game.Data.Metacritic.URL, "https://metacritic.com/game/pc/"), game.Data.Metacritic.Score))
+		meta, err := regexSubstr(game.Data.Metacritic.URL, `https://(?:www.)?metacritic.com/game/pc/([^?/]+)`)
+		if err == nil {
+			outputFile.WriteString(fmt.Sprintf("%s|%d}}", meta, game.Data.Metacritic.Score))
+		} else {
+			outputFile.WriteString("link|rating}}")
+		}
 	} else if val, ok := game.Data.Ratings["Metascore"]; ok {
-		outputFile.WriteString(fmt.Sprintf("%s|%d}}", strings.TrimPrefix(val.URL, "https://metacritic.com/game/pc/"), val.Score))
+		meta, err := regexSubstr(val.URL, `https://(?:www.)?metacritic.com/game/pc/([^?/]+)`)
+		if err == nil {
+			outputFile.WriteString(fmt.Sprintf("%s|%d}}", meta, val.Score))
+		} else {
+			outputFile.WriteString("link|rating}}")
+		}
 	} else {
 		outputFile.WriteString("link|rating}}")
 	}
@@ -707,7 +725,7 @@ func main() {
 		} else {
 			outputFile.WriteString("false")
 		}
-outputFile.WriteString(`
+		outputFile.WriteString(`
 |openxr                      = 
 |openxr notes                = 
 |steamvr                     = unknown
