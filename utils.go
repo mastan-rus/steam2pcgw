@@ -286,7 +286,7 @@ func GetExeBit(is32 bool, platform string, platforms Platforms, requirements Req
 		}
 	}
 
-	fmt.Printf("* [21/25] %s (32-bit: %v): %s\n", platform, is32, value)
+	fmt.Printf("* [23/26] %s (32-bit: %v): %s\n", platform, is32, value)
 
 	return value
 }

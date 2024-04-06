@@ -93,6 +93,7 @@ v0.0.74 Release Candidate 6
 - [ ] Input: Controller (PS/Xbox/Others) (IMPOSSIBLE)
 - [x] Audio (Subtitles status is automatically set)
 - [x] Languages (There maybe some discrepancies as Steam API provides very vague info - No discrepancies reported so far)
+- [x] VR
 - [ ] API (App executables are guessed from the system specifications - mostly accurate)
 - [ ] Middleware
 - [x] System Requirements: Windows (CPU and GPU sections may need review)

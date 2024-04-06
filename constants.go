@@ -73,5 +73,8 @@ const (
 	LocalMultiPlayer         CategoryId = 37 // Local Multi-Player,
 	OnlineCoOp               CategoryId = 38 // Online Co-op,
 	LocalCoOp                CategoryId = 39 // Local Co-op,
-	SteamVRCollectibles      CategoryId = 40 // SteamVR Collectibles
+	SteamVRCollectibles      CategoryId = 40 // SteamVR Collectibles,
+	TrackedControllerSupport CategoryId = 52 // Tracked Controller Support,
+	VRSupported              CategoryId = 53 // VR Supported (how is it different from 31?),
+	VROnly                   CategoryId = 54 // VR Only
 )
