@@ -505,6 +505,8 @@ func main() {
 |mouse sensitivity notes   = 
 |mouse menu                = unknown
 |mouse menu notes          = 
+|keyboard and mouse prompts = unknown
+|keyboard and mouse prompts notes = 
 |invert mouse y-axis       = unknown
 |invert mouse y-axis notes = 
 |touchscreen               = unknown
@@ -522,9 +524,9 @@ func main() {
 |controller remap          = unknown
 |controller remap notes    = 
 |controller sensitivity    = unknown
-|controller sensitivity notes= 
+|controller sensitivity notes = 
 |invert controller y-axis  = unknown
-|invert controller y-axis notes= 
+|invert controller y-axis notes = 
 |xinput controllers        = unknown
 |xinput controllers notes  = 
 |xbox prompts              = unknown
@@ -536,15 +538,18 @@ func main() {
 |playstation controllers notes = 
 |playstation prompts       = unknown
 |playstation prompts notes = 
+|playstation motion sensors = unknown
+|playstation motion sensors modes = 
+|playstation motion sensors notes = 
 |light bar support         = unknown
 |light bar support notes   = 
 |dualsense adaptive trigger support = unknown
-|dualsense adaptive trigger support notes =
+|dualsense adaptive trigger support notes = 
 |dualsense haptics support  = unknown
-|dualsense haptics support notes =
-|playstation connection modes = 
+|dualsense haptics support notes = 
+|playstation connection modes = unknown
 |playstation connection modes notes = 
-|tracked motion controllers= `)
+|tracked motion controllers = `)
 	if game.HasCategory(TrackedControllerSupport) {
 		outputFile.WriteString("true")
 	} else {
@@ -560,20 +565,31 @@ func main() {
 |other button prompts notes= 
 |controller hotplug        = unknown
 |controller hotplug notes  = 
+|input prompt override  = unknown
+|input prompt override notes = 
 |haptic feedback           = unknown
 |haptic feedback notes     = 
 |digital movement supported = unknown
-|digital movement supported notes= 
+|digital movement supported notes = 
 |simultaneous input        = unknown
 |simultaneous input notes  = 
 |steam input api           = unknown
 |steam input api notes     = 
 |steam hook input          = unknown
 |steam hook input notes    = 
-|steam input presets       = unknown
-|steam input presets notes = 
+|steam input prompts = unknown
+|steam input prompts icons = 
+|steam input prompts styles = 
+|steam input prompts notes = 
+|steam deck prompts  = unknown
+|steam deck prompts notes = 
 |steam controller prompts  = unknown
 |steam controller prompts notes = 
+|steam input motion sensors = unknown
+|steam input motion sensors modes = 
+|steam input motion sensors notes = 
+|steam input presets = unknown
+|steam input preset notes = 
 |steam cursor detection    = unknown
 |steam cursor detection notes = 
 }}`)
@@ -600,7 +616,7 @@ func main() {
 |eax support notes         = 
 |royalty free audio        = unknown
 |royalty free audio notes  = 
-|red book cd audio         =
+|red book cd audio         = 
 |red book cd audio notes   = 
 |general midi audio        = 
 |general midi audio notes  = 
