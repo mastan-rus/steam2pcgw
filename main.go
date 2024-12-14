@@ -700,6 +700,9 @@ func main() {
 |online play notes    = 
 |asynchronous         = 
 |asynchronous notes   = 
+|crossplay            = 
+|crossplay platforms  = 
+|crossplay notes      = 
 }}`)
 		outputFile.WriteString("{{Network/Connections")
 		outputFile.WriteString(`

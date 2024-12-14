@@ -137,7 +137,7 @@ func createCache(gameId string, apiBody []byte, scrapeBody []byte) (err error) {
 
 func checkRequest(response *http.Response, err error) error {
 	if err != nil {
-		fmt.Printf("Failed to connect to the '%v'... (error: %s)\n", response.Request.URL, err)
+		fmt.Printf("Failed to connect (error: %s)\n", err)
 	} else if response.StatusCode != http.StatusOK {
 		fmt.Printf("Failed to connect to the '%v'... (HTTP code: %d)\n", response.Request.URL, response.StatusCode)
 		err = errors.New("status code not OK")
