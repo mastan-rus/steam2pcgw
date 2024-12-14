@@ -20,7 +20,7 @@ v0.0.74 Release Candidate 6
 1. Either visit the Releases page and download the latest build from there.
 2. Download the ZIP (Press 'Code' → 'Download ZIP') or Clone.
 3. Create two directories where the executable is placed: `cache` (stores all the Steam Page and Steam API cache) and `output` (outputs all the generated articles in there).
-4. Run the executable or type `go run` (you'll require Go <https://go.dev/doc/install> to do this!).
+4. Run the executable or type `go run .` (you'll require Go <https://go.dev/doc/install> to do this!).
 
 ## Contributions
 
