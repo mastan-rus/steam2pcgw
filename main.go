@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -40,7 +41,7 @@ func main() {
 	fmt.Println("Fetching game app details...")
 
 	var gameJson []byte
-	gameJson, err = ParseGame(gameId)
+	gameJson, err = ParseGame(gameId, false)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -210,6 +211,7 @@ func main() {
 
 	outputFile.WriteString(fmt.Sprintf("|steam appid  = %s\n|steam appid side = ", gameId))
 	if game.Data.Dlc != nil {
+		sort.Slice(game.Data.Dlc, func(i, j int) bool { return game.Data.Dlc[i] < game.Data.Dlc[j] })
 		var dlcs string = ""
 		for _, v := range game.Data.Dlc {
 			dlcs += fmt.Sprintf("%v, ", v)
@@ -380,7 +382,73 @@ func main() {
 	outputFile.WriteString("\n}}")
 
 	fmt.Println("* [13/26] Processing DLCs!")
-	outputFile.WriteString("\n\n{{DLC|\n<!-- DLC rows goes below: -->\n\n}}")
+	var addedDlcs int = 0
+	if game.Data.Dlc != nil {
+		outputFile.WriteString("\n\n{{DLC|")
+
+		for i, dlcsteamid := range game.Data.Dlc {
+			// TODO dlcs
+			fmt.Printf("  Processing DLC [%d/%d] steamid %d... ", i+1, len(game.Data.Dlc), dlcsteamid)
+			var dlcJson []byte
+			dlcJson, err = ParseGame(strconv.FormatInt(dlcsteamid, 10), true)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			dlc, err := UnmarshalGame(dlcJson)
+			if err != nil {
+				fmt.Printf("An error occurred while attempting to unmarshal the JSON... (%s)\n", err)
+				continue
+			} else if !dlc.Success {
+				fmt.Println("DLC Steam ID provided does not exist or does not have a Store page...")
+				continue
+			}
+
+			var dlcname = dlc.Data.Name
+			dlcname = strings.TrimPrefix(dlcname, game.Data.Name) // Removing game name
+			dlcname = strings.TrimLeft(dlcname, " -:")
+			dlcname = strings.TrimPrefix(dlcname, "DLC") // "DLC" can be left sometimes, removing it too
+			dlcname = strings.TrimLeft(dlcname, " -:")
+			dlcname = strings.ReplaceAll(dlcname, "=", "&#61;") // Replacing unsupported symbols
+
+			if strings.Contains(strings.ToLower(dlcname), "soundtrack") {
+				fmt.Printf("  Skipping soundtrack '%s'\n", dlc.Data.Name)
+				continue
+			}
+
+			if strings.Contains(strings.ToLower(dlcname), "artwork") ||
+				strings.Contains(strings.ToLower(dlcname), "concept art") ||
+				strings.Contains(strings.ToLower(dlcname), "digital art") {
+				fmt.Printf("  Skipping artwork '%s'\n", dlc.Data.Name)
+				continue
+			}
+
+			fmt.Printf(" Adding DLC '%s'\n", dlcname)
+
+			var oses string = ""
+			if game.Data.Platforms.Windows {
+				oses += "Windows, "
+			}
+			if game.Data.Platforms.MAC {
+				oses += "OS X, "
+			}
+			if game.Data.Platforms.Linux {
+				oses += "Linux, "
+			}
+			oses = strings.TrimSuffix(oses, ", ")
+			outputFile.WriteString(fmt.Sprintf("\n{{DLC/row| %s | | %s }}", dlcname, oses))
+
+			addedDlcs++
+		}
+
+		fmt.Printf("  Added %d DLCs\n", addedDlcs)
+		// insert comment if no DLCs were actually added
+		if addedDlcs == 0 {
+			outputFile.WriteString("\n<!-- DLC rows goes below: -->")
+		}
+		outputFile.WriteString("\n}}")
+	}
 
 	fmt.Println("* [14/26] Processing Config File Location!")
 

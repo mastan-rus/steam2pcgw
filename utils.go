@@ -205,7 +205,7 @@ func fetchGame(gameId string) (err error) {
 	return err
 }
 
-func ParseGame(gameId string) (body []byte, err error) {
+func ParseGame(gameId string, shouldsleep bool) (body []byte, err error) {
 	os.Mkdir("cache", 0777)
 	os.Mkdir("output", 0777)
 
@@ -218,6 +218,11 @@ func ParseGame(gameId string) (body []byte, err error) {
 	}
 
 	fmt.Println("Did not find game cache or cache is older than 7 days...")
+
+	// Optional 1-second sleep to not query DLC pages too often
+	if shouldsleep {
+		time.Sleep(time.Second)
+	}
 
 	err = fetchGame(gameId)
 	if err == nil {
@@ -245,6 +250,9 @@ func TakeInput() (string, error) {
 
 func GetExeBit(is32 bool, platform string, platforms Platforms, requirements Requirement) string {
 	value := "unknown"
+	if requirements == nil {
+		return value
+	}
 
 	if (platform == "windows" && platforms.Windows) || (platform == "mac" && platforms.MAC) || (platform == "linux" && platforms.Linux) {
 		var sanitised = strings.ToLower(requirements["minimum"].(string))
@@ -564,6 +572,10 @@ func (game *Game) AddRating(name, scoreString, link string) {
 }
 
 func (game *Game) FindDirectX() string {
+	if game.Data.PCRequirements == nil {
+		return ""
+	}
+
 	if len(game.Data.PCRequirements["minimum"].(string)) == 0 {
 		return ""
 	}
@@ -697,11 +709,13 @@ func (game *Game) OutputSpecs() string {
 	if game.Data.Platforms.Windows {
 		output += "\n{{System requirements\n"
 		output += "|OSfamily = Windows"
-		specs = ProcessSpecs(game.Data.PCRequirements["minimum"].(string), true)
-		output += specs
+		if game.Data.PCRequirements != nil {
+			specs = ProcessSpecs(game.Data.PCRequirements["minimum"].(string), true)
+			output += specs
+		}
 
 		// Handle recommended specs
-		if game.Data.PCRequirements["recommended"] != nil {
+		if game.Data.PCRequirements != nil && game.Data.PCRequirements["recommended"] != nil {
 			specs = ProcessSpecs(game.Data.PCRequirements["recommended"].(string), false)
 			output += specs
 		} else {
@@ -713,11 +727,13 @@ func (game *Game) OutputSpecs() string {
 	if game.Data.Platforms.MAC {
 		output += "\n{{System requirements\n"
 		output += ("|OSfamily = OS X")
-		specs = ProcessSpecs(game.Data.MACRequirements["minimum"].(string), true)
-		output += specs
+		if game.Data.MACRequirements != nil {
+			specs = ProcessSpecs(game.Data.MACRequirements["minimum"].(string), true)
+			output += specs
+		}
 
 		// Handle recommended specs
-		if game.Data.MACRequirements["recommended"] != nil {
+		if game.Data.MACRequirements != nil && game.Data.MACRequirements["recommended"] != nil {
 			specs = ProcessSpecs(game.Data.MACRequirements["recommended"].(string), false)
 			output += specs
 		} else {
@@ -729,11 +745,13 @@ func (game *Game) OutputSpecs() string {
 	if game.Data.Platforms.Linux {
 		output += "\n{{System requirements\n"
 		output += ("|OSfamily = Linux")
-		specs = ProcessSpecs(game.Data.LinuxRequirements["minimum"].(string), true)
-		output += specs
+		if game.Data.LinuxRequirements != nil {
+			specs = ProcessSpecs(game.Data.LinuxRequirements["minimum"].(string), true)
+			output += specs
+		}
 
 		// Handle recommended specs
-		if game.Data.LinuxRequirements["recommended"] != nil {
+		if game.Data.LinuxRequirements != nil && game.Data.LinuxRequirements["recommended"] != nil {
 			specs = ProcessSpecs(game.Data.LinuxRequirements["recommended"].(string), false)
 			output += specs
 		} else {
