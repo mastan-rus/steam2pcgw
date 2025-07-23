@@ -599,165 +599,344 @@ func (game *Game) FindDirectX() string {
 	return version
 }
 
-func ProcessSpecs(input string, isMin bool) string {
-	// Create vars
-	var level string
-	output := input
+func splitChars(r rune) bool {
+	return r == '/' || r == '／' || r == ','
+}
 
-	if len(output) == 0 {
-		return output
+func fixMemSize(input string) string {
+	sizeRegEx := regexp.MustCompile(`(?i)\d[kmg]b`)
+	l := sizeRegEx.FindStringIndex(input)
+	if l != nil {
+		input = input[:l[0]+1] + " " + input[l[0]+1:]
 	}
+	return input
+}
 
-	// Sanitise input and remove HTML tags
-	output = RemoveTags(output, "\n")
+func ProcessSpecs(input string, isMin bool) SysRequirements {
+	result := SysRequirements{}
 
-	// Cleanup some text, more texts must be added here...
-	output = strings.Replace(output, "Requires a 64-bit processor and operating system", "", 1)
-	output = strings.ReplaceAll(output, "available space", "")
-	output = strings.ReplaceAll(output, "RAM", "")
-	output = strings.ReplaceAll(output, "Version ", "")
-	output = strings.ReplaceAll(output, "Windows ", "")
+	input = strings.ReplaceAll(input, "only", "")
+	input = strings.ReplaceAll(input, " or greater", "")
+	input = strings.ReplaceAll(input, " or better", "")
+	input = strings.ReplaceAll(input, " or later", "")
+	input = strings.ReplaceAll(input, " or higher", "")
+	input = strings.ReplaceAll(input, " or lower", "")
+	input = strings.ReplaceAll(input, "Ghz", "GHz")
+	input = strings.ReplaceAll(input, "ghz", "GHz")
+	input = strings.ReplaceAll(input, "GHz", " GHz")
+	input = strings.ReplaceAll(input, "  GHz", " GHz")
+	input = strings.ReplaceAll(input, "®", "")
+	input = strings.ReplaceAll(input, "©", "")
+	lines := strings.Split(RemoveTags(input, "\n"), "\n")
 
-	networkRe := regexp.MustCompile(`Network:(.+)\n`)
-	output = networkRe.ReplaceAllLiteralString(output, "")
-
-	// Determine
-	if isMin {
-		level = "min"
-		output = strings.Replace(output, "Minimum:\n", "", 1)
-	} else {
-		level = "rec"
-		output = strings.Replace(output, "Recommended:\n", "", 1)
-	}
-
-	// Replace
-	output = strings.Replace(output, "OS:", fmt.Sprintf("|%sOS    = ", level), 1)
-	output = strings.Replace(output, "VR Support:", fmt.Sprintf("|%sother = ", level), 1)
-
-	// Processor stuff
-	if strings.Contains(output, "Processor:") {
-		cpuRegEx := regexp.MustCompile(`(Processor:)(.+?)(?: or |/|,|\|)+(.+)\n`)
-		cpus := cpuRegEx.FindStringSubmatch(output)
-
-		if len(cpus) == 4 {
-			output = cpuRegEx.ReplaceAllLiteralString(output, fmt.Sprintf("|%sCPU   = %s\n|%sCPU2  = %s\n", level, cpus[2], level, strings.TrimPrefix(cpus[3], " ")))
-		} else {
-			cpuRegEx = regexp.MustCompile(`Processor:(.+)\n`)
-			cpus = cpuRegEx.FindStringSubmatch(output)
-			output = cpuRegEx.ReplaceAllLiteralString(output, fmt.Sprintf("|%sCPU   = %s\n|%sCPU2  = %s\n", level, cpus[1], level, cpus[1]))
+	for _, line := range lines {
+		if len(line) == 0 {
+			continue
 		}
+
+		defRegEx := regexp.MustCompile(`([a-zA-Z *]+):(.+)$`)
+		defs := defRegEx.FindStringSubmatch(line)
+		if len(defs) != 3 {
+			continue
+		}
+		param := defs[2]
+		switch defs[1] {
+		case "OS":
+			fallthrough
+		case "OS *":
+			param = regexp.MustCompile(`(?i)\(?(32|64)[- ]?bits?\)?`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)microsoft`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)windows`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)os x`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)macos`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)versions?`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)\(r\)`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)\bor `).ReplaceAllString(param, ", ")
+			param = strings.ReplaceAll(param, ", ,", ",")
+			param = strings.ReplaceAll(param, ",,", ",")
+			param = strings.ReplaceAll(param, "/", ",")
+			param = strings.ReplaceAll(param, " ,", ",")
+			param = strings.ReplaceAll(param, ",", ", ")
+			param = strings.ReplaceAll(param, ",  ", ", ")
+			param = strings.Trim(param, " .,")
+			result.OS = param
+		case "Processor":
+			param = regexp.MustCompile(`(?i)processor`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)cpu`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)\bor `).ReplaceAllString(param, ", ")
+			param = strings.ReplaceAll(param, ", ,", ",")
+			param = strings.ReplaceAll(param, ",,", ",")
+			result.CPU = strings.FieldsFunc(param, splitChars)
+			for i := 0; i < len(result.CPU); i++ {
+				result.CPU[i] = strings.Trim(result.CPU[i], " .,")
+			}
+		case "Memory":
+			param = regexp.MustCompile(`(?i)ram`).ReplaceAllString(param, "")
+			param = fixMemSize(param)
+			result.RAM = strings.Trim(param, " ")
+		case "Graphics":
+			fallthrough
+		case "Video Card":
+			param = regexp.MustCompile(`(?i)\bor `).ReplaceAllString(param, ", ")
+			param = regexp.MustCompile(`(?i)\band `).ReplaceAllString(param, ", ")
+			param = strings.ReplaceAll(param, ", ,", ",")
+			param = strings.ReplaceAll(param, ",,", ",")
+
+			gpus := []string{}
+			fields := strings.FieldsFunc(param, splitChars)
+			for i := 0; i < len(fields); i++ {
+				ogl := regexp.MustCompile(`OpenGL\s*([0-9.]+)`).FindStringSubmatch(fields[i])
+				if len(ogl) == 2 {
+					result.OGL = ogl[1]
+				} else {
+					p := strings.ReplaceAll(fields[i], "NVIDIA", "Nvidia")
+					p = strings.ReplaceAll(p, "Amd", "AMD")
+					p = strings.Trim(p, " .,")
+					gpus = append(gpus, p)
+				}
+			}
+			result.GPU = gpus
+		case "DirectX":
+			param = regexp.MustCompile(`(?i)version`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)directx`).ReplaceAllString(param, "")
+			result.DX = strings.Trim(param, " ")
+		case "Storage":
+			fallthrough
+		case "Hard Drive":
+			fallthrough
+		case "Hard Disk Space":
+			param = regexp.MustCompile(`(?i)available space`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)hd space`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)free space`).ReplaceAllString(param, "")
+			param = fixMemSize(param)
+			result.HD = strings.Trim(param, " ")
+		case "Other Requirements":
+			result.Other = param
+		case "Additional Notes":
+			result.Notes = param
+		default:
+			// fmt.Println("Unprocessed requirement ", defs[1], " - ", param)
+		}
+
+	}
+	return result
+}
+
+func textSysRequirements(specs SysRequirements, level string) string {
+	result := fmt.Sprintf("|%sTGT   = \n|%sOS    = %s\n", level, level, specs.OS)
+	var cpu1 string = ""
+	var cpu2 string = ""
+	if len(specs.CPU) >= 1 {
+		cpu1 = specs.CPU[0]
+	}
+	if len(specs.CPU) >= 2 {
+		cpu2 = specs.CPU[1]
 	}
 
-	output = strings.TrimSuffix(strings.Replace(output, "Storage:", fmt.Sprintf("|%sHD    = ", level), 1), " ")
+	result += fmt.Sprintf("|%sCPU   = %s\n", level, cpu1)
+	result += fmt.Sprintf("|%sCPU2  = %s\n", level, cpu2)
+	result += fmt.Sprintf("|%sRAM   = %s\n", level, specs.RAM)
+	result += fmt.Sprintf("|%sHD    = %s\n", level, specs.HD)
 
-	// Graphics stuff
-	if strings.Contains(output, "Graphics:") {
-		gpuRegEx := regexp.MustCompile(`Graphics:(.+)\n`)
-		gpus := gpuRegEx.FindStringSubmatch(output)
+	var gpu1 string = ""
+	var gpu2 string = ""
+	var gpu3 string = ""
+	if len(specs.GPU) >= 1 {
+		gpu1 = specs.GPU[0]
+	}
+	if len(specs.GPU) >= 2 {
+		gpu2 = specs.GPU[1]
+	}
+	if len(specs.GPU) >= 3 {
+		gpu3 = specs.GPU[2]
+	}
+	result += fmt.Sprintf("|%sGPU   = %s\n", level, gpu1)
+	result += fmt.Sprintf("|%sGPU2  = %s\n", level, gpu2)
+	if len(gpu3) != 0 {
+		result += fmt.Sprintf("|%sGPU3  = %s\n", level, gpu3)
+	}
+	result += fmt.Sprintf("|%sVRAM  = %s\n", level, specs.VRAM)
+	if len(specs.OGL) != 0 {
+		result += fmt.Sprintf("|%sOGL   = %s\n", level, specs.OGL)
+	}
+	result += fmt.Sprintf("|%sDX    = %s\n", level, specs.DX)
 
-		gpus[0] = strings.ReplaceAll(gpus[0], "or greater", "")
-		gpus[0] = strings.ReplaceAll(gpus[0], "or better", "")
+	if len(specs.Other) != 0 {
+		result += fmt.Sprintf("|%sother = %s\n\n", level, specs.Other)
+	}
 
-		if strings.Contains(gpus[0], "OpenGL") {
-			output = gpuRegEx.ReplaceAllLiteralString(output, fmt.Sprintf("|%sOGL   = %s\n", level, strings.ReplaceAll(gpus[1], "OpenGL ", "")))
-		} else {
-			// Did not find OpenGL stuff, this means we can do a different regex then...
-			// Thanks Dandelion Sprout for this amazing RegEx
-			gpuRegEx3 := regexp.MustCompile(`(Graphics:)([a-zA-Z0-9.;' -]{1,})(, |/| / )([a-zA-Z0-9.;' -]{1,})(, |/| / )([a-zA-Z0-9.;' -]{1,})`)
-			gpus = gpuRegEx3.FindStringSubmatch(output)
-			if len(gpus) == 7 {
-				output = gpuRegEx3.ReplaceAllLiteralString(output, fmt.Sprintf("|%sGPU   = %s\n|%sGPU2  = %s\n|%sGPU3   = %s", level, gpus[2], level, gpus[4], level, gpus[6]))
-			} else {
-				gpuRegEx2 := regexp.MustCompile(`(Graphics:)(.+)(?: or |/|,|\|)+(.+)\n`)
-				gpus := gpuRegEx2.FindStringSubmatch(output)
-				if len(gpus) == 4 {
-					output = gpuRegEx2.ReplaceAllLiteralString(output, fmt.Sprintf("|%sGPU   = %s\n|%sGPU2  = %s\n", level, gpus[2], level, strings.TrimPrefix(gpus[3], " ")))
-				} else {
-					gpus := gpuRegEx.FindStringSubmatch(output)
-					output = gpuRegEx.ReplaceAllLiteralString(output, fmt.Sprintf("|%sGPU   = %s\n|%sGPU2  = %s\n", level, gpus[1], level, gpus[1]))
-				}
+	result += "\n"
+
+	return result
+}
+
+func CleanRecommended(min SysRequirements, rec SysRequirements) SysRequirements {
+	if min.OS == rec.OS {
+		rec.OS = ""
+	}
+
+	if len(min.CPU) == len(rec.CPU) {
+		for i := 0; i < len(min.CPU); i++ {
+			if min.CPU[i] == rec.CPU[i] {
+				rec.CPU[i] = ""
 			}
 		}
 	}
 
-	output = strings.TrimSuffix(strings.Replace(output, "Memory:", fmt.Sprintf("|%sRAM   = ", level), 1), " ")
-	output = strings.Replace(output, "OS:", fmt.Sprintf("|%sVRAM    = ", level), 1)
-	output = strings.Replace(output, "DirectX:", fmt.Sprintf("|%sDX    = ", level), 1)
-	output = strings.Replace(output, "Sound Card:", fmt.Sprintf("|%saudio = ", level), 1)
+	if min.RAM == rec.RAM {
+		rec.RAM = ""
+	}
 
-	output = strings.Replace(output, "Additional Notes:", "\n|notes    = {{ii}}", 1)
+	if min.HD == rec.HD {
+		rec.HD = ""
+	}
 
-	// Output
-	return output
+	if len(min.GPU) == len(rec.GPU) {
+		for i := 0; i < len(min.GPU); i++ {
+			if min.GPU[i] == rec.GPU[i] {
+				rec.GPU[i] = ""
+			}
+		}
+	}
+
+	if min.VRAM == rec.VRAM {
+		rec.VRAM = ""
+	}
+
+	if min.OGL == rec.OGL {
+		rec.OGL = ""
+	}
+
+	if min.DX == rec.DX {
+		rec.DX = ""
+	}
+
+	if min.Other == rec.Other {
+		rec.Other = ""
+	}
+
+	if min.Notes == rec.Notes {
+		rec.Notes = ""
+	}
+
+	return rec
 }
 
 func emptySpecs(level string) string {
-	return fmt.Sprintf(`|%sOS    = 
+	return fmt.Sprintf(`|%sTGT   = 
+|%sOS    = 
 |%sCPU   = 
 |%sCPU2  = 
 |%sRAM   = 
 |%sHD    = 
 |%sGPU   = 
 |%sGPU2  = 
-|%sVRAM  = `, level, level, level, level, level, level, level, level)
+|%sVRAM  = 
+|%sDX    =
+
+`, level, level, level, level, level, level, level, level, level, level)
+}
+
+func altSpecs(notes string) string {
+	return fmt.Sprintf(`<!-- Please see the Editing Guide before filling in the following -->
+|alt1Title = 
+|alt1TGT   = 
+|alt1OS    = 
+|alt1CPU   = 
+|alt1CPU2  = 
+|alt1RAM   = 
+|alt1HD    = 
+|alt1GPU   = 
+|alt1GPU2  = 
+|alt1GPU3  = 
+|alt1VRAM  = 
+
+|alt2Title = 
+|alt2TGT   = 
+|alt2OS    = 
+|alt2CPU   = 
+|alt2CPU2  = 
+|alt2RAM   = 
+|alt2HD    = 
+|alt2GPU   = 
+|alt2GPU2  = 
+|alt2GPU3  = 
+|alt2VRAM  = 
+|notes     = %s`, notes)
+}
+
+func outputPlaform(isMin bool, isRec bool, minspecs string, recspecs string, osname string) string {
+	var output string = ""
+	var specs string = ""
+	var reqsmin SysRequirements
+	var reqsrec SysRequirements
+
+	output += "\n{{System requirements\n"
+	output += "|OSfamily = " + osname + "\n\n"
+
+	if isMin {
+		reqsmin = ProcessSpecs(minspecs, true)
+		specs = textSysRequirements(reqsmin, "min")
+		output += specs
+	} else {
+		output += emptySpecs("min")
+	}
+
+	// Handle recommended specs
+	if isRec {
+		reqsrec = ProcessSpecs(recspecs, false)
+		reqsrec = CleanRecommended(reqsmin, reqsrec)
+		specs = textSysRequirements(reqsrec, "rec")
+		output += specs
+	} else {
+		output += emptySpecs("rec")
+	}
+
+	output += altSpecs(reqsmin.Notes)
+	output += "\n}}\n"
+	return output
 }
 
 func (game *Game) OutputSpecs() string {
 	var output string = ""
-	var specs string = ""
+	var minStr = ""
+	var recStr = ""
 
 	if game.Data.Platforms.Windows {
-		output += "\n{{System requirements\n"
-		output += "|OSfamily = Windows"
-		if game.Data.PCRequirements != nil {
-			specs = ProcessSpecs(game.Data.PCRequirements["minimum"].(string), true)
-			output += specs
-		}
+		isMin := game.Data.PCRequirements != nil && game.Data.PCRequirements["minimum"] != nil
+		isRec := game.Data.PCRequirements != nil && game.Data.PCRequirements["recommended"] != nil
 
-		// Handle recommended specs
-		if game.Data.PCRequirements != nil && game.Data.PCRequirements["recommended"] != nil {
-			specs = ProcessSpecs(game.Data.PCRequirements["recommended"].(string), false)
-			output += specs
-		} else {
-			output += emptySpecs("rec")
+		if isMin {
+			minStr = game.Data.PCRequirements["minimum"].(string)
 		}
-		output += "\n}}\n"
+		if isRec {
+			recStr = game.Data.PCRequirements["recommended"].(string)
+		}
+		output += outputPlaform(isMin, isRec, minStr, recStr, "Windows")
 	}
 
 	if game.Data.Platforms.MAC {
-		output += "\n{{System requirements\n"
-		output += ("|OSfamily = OS X")
-		if game.Data.MACRequirements != nil {
-			specs = ProcessSpecs(game.Data.MACRequirements["minimum"].(string), true)
-			output += specs
+		isMin := game.Data.MACRequirements != nil && game.Data.MACRequirements["minimum"] != nil
+		isRec := game.Data.MACRequirements != nil && game.Data.MACRequirements["recommended"] != nil
+		if isMin {
+			minStr = game.Data.MACRequirements["minimum"].(string)
 		}
-
-		// Handle recommended specs
-		if game.Data.MACRequirements != nil && game.Data.MACRequirements["recommended"] != nil {
-			specs = ProcessSpecs(game.Data.MACRequirements["recommended"].(string), false)
-			output += specs
-		} else {
-			output += emptySpecs("rec")
+		if isRec {
+			recStr = game.Data.MACRequirements["recommended"].(string)
 		}
-		output += "\n}}\n"
+		output += outputPlaform(isMin, isRec, minStr, recStr, "OS X")
 	}
 
 	if game.Data.Platforms.Linux {
-		output += "\n{{System requirements\n"
-		output += ("|OSfamily = Linux")
-		if game.Data.LinuxRequirements != nil {
-			specs = ProcessSpecs(game.Data.LinuxRequirements["minimum"].(string), true)
-			output += specs
+		isMin := game.Data.LinuxRequirements != nil && game.Data.LinuxRequirements["minimum"] != nil
+		isRec := game.Data.LinuxRequirements != nil && game.Data.LinuxRequirements["recommended"] != nil
+		if isMin {
+			minStr = game.Data.LinuxRequirements["minimum"].(string)
 		}
-
-		// Handle recommended specs
-		if game.Data.LinuxRequirements != nil && game.Data.LinuxRequirements["recommended"] != nil {
-			specs = ProcessSpecs(game.Data.LinuxRequirements["recommended"].(string), false)
-			output += specs
-		} else {
-			output += emptySpecs("rec")
+		if isRec {
+			recStr = game.Data.LinuxRequirements["recommended"].(string)
 		}
-		output += "\n}}\n"
+		output += outputPlaform(isMin, isRec, minStr, recStr, "Linux")
 	}
 
 	return output
@@ -765,9 +944,10 @@ func (game *Game) OutputSpecs() string {
 
 func (game *Game) addLanguage(name string, ui, audio, subtitles bool) {
 
-	if name == "Simplified Chinese" {
+	switch name {
+	case "Simplified Chinese":
 		name = "Chinese Simplified"
-	} else if name == "Traditional Chinese" {
+	case "Traditional Chinese":
 		name = "Chinese Traditional"
 	}
 
@@ -843,15 +1023,16 @@ func ParseDate(date string) (output string) {
 func (game *Game) FormatLanguage(language string) string {
 	sanitisedLanguage := language
 
-	if sanitisedLanguage == "Spanish - Spain" {
+	switch sanitisedLanguage {
+	case "Spanish - Spain":
 		sanitisedLanguage = "Spanish"
-	} else if sanitisedLanguage == "Spanish - Latin America" {
+	case "Spanish - Latin America":
 		sanitisedLanguage = "Latin American Spanish"
-	} else if sanitisedLanguage == "Portuguese - Brazil" {
+	case "Portuguese - Brazil":
 		sanitisedLanguage = "Brazilian Portuguese"
-	} else if sanitisedLanguage == "Chinese Simplified" {
+	case "Chinese Simplified":
 		sanitisedLanguage = "Simplified Chinese"
-	} else if sanitisedLanguage == "Chinese Traditional" {
+	case "Chinese Traditional":
 		sanitisedLanguage = "Traditional Chinese"
 	}
 

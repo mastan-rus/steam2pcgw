@@ -637,6 +637,9 @@ func main() {
 |input prompt override notes = 
 |haptic feedback           = unknown
 |haptic feedback notes     = 
+|haptic feedback hd        = unknown
+|haptic feedback hd notes  = 
+|haptic feedback hd controller models = 
 |digital movement supported = unknown
 |digital movement supported notes = 
 |simultaneous input        = unknown

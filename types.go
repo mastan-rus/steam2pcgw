@@ -120,3 +120,16 @@ type ValidStore struct {
 	DisplayName string
 	LinkToStrip string
 }
+
+type SysRequirements struct {
+	OS    string
+	CPU   []string
+	RAM   string
+	HD    string
+	GPU   []string
+	VRAM  string
+	OGL   string
+	DX    string
+	Other string
+	Notes string
+}

@@ -13,7 +13,7 @@ Well, it's certainly up to you to decide whether you want to use it or not, and 
 
 ## Version
 
-v0.0.74 Release Candidate 6
+v0.0.76
 
 ## How To
 
