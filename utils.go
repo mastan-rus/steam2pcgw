@@ -621,6 +621,7 @@ func ProcessSpecs(input string, isMin bool) SysRequirements {
 	input = strings.ReplaceAll(input, " or later", "")
 	input = strings.ReplaceAll(input, " or higher", "")
 	input = strings.ReplaceAll(input, " or lower", "")
+	input = strings.ReplaceAll(input, " or equivalent", "")
 	input = strings.ReplaceAll(input, "Ghz", "GHz")
 	input = strings.ReplaceAll(input, "ghz", "GHz")
 	input = strings.ReplaceAll(input, "GHz", " GHz")
@@ -662,6 +663,7 @@ func ProcessSpecs(input string, isMin bool) SysRequirements {
 			result.OS = param
 		case "Processor":
 			param = regexp.MustCompile(`(?i)processor`).ReplaceAllString(param, "")
+			param = regexp.MustCompile(`(?i)\(?(32|64)[- ]?bits?\)?`).ReplaceAllString(param, "")
 			param = regexp.MustCompile(`(?i)cpu`).ReplaceAllString(param, "")
 			param = regexp.MustCompile(`(?i)\bor `).ReplaceAllString(param, ", ")
 			param = strings.ReplaceAll(param, ", ,", ",")
@@ -722,52 +724,60 @@ func ProcessSpecs(input string, isMin bool) SysRequirements {
 	return result
 }
 
-func textSysRequirements(specs SysRequirements, level string) string {
-	result := fmt.Sprintf("|%sTGT   = \n|%sOS    = %s\n", level, level, specs.OS)
-	var cpu1 string = ""
-	var cpu2 string = ""
+func processSysRequirements(input string, specs SysRequirements, level string) string {
+	output := input
+
+	mkItem := func(op string) string {
+		return "$" + level + "_" + op + "$"
+	}
+
+	output = strings.ReplaceAll(output, mkItem("os_versions"), specs.OS)
+
 	if len(specs.CPU) >= 1 {
-		cpu1 = specs.CPU[0]
+		output = strings.ReplaceAll(output, mkItem("cpu1"), specs.CPU[0])
+	} else {
+		output = strings.ReplaceAll(output, mkItem("cpu1"), "")
 	}
+
 	if len(specs.CPU) >= 2 {
-		cpu2 = specs.CPU[1]
+		output = strings.ReplaceAll(output, mkItem("cpu2"), specs.CPU[1])
+	} else {
+		output = strings.ReplaceAll(output, mkItem("cpu2"), "")
 	}
 
-	result += fmt.Sprintf("|%sCPU   = %s\n", level, cpu1)
-	result += fmt.Sprintf("|%sCPU2  = %s\n", level, cpu2)
-	result += fmt.Sprintf("|%sRAM   = %s\n", level, specs.RAM)
-	result += fmt.Sprintf("|%sHD    = %s\n", level, specs.HD)
-
-	var gpu1 string = ""
-	var gpu2 string = ""
-	var gpu3 string = ""
+	output = strings.ReplaceAll(output, mkItem("ram"), specs.RAM)
+	output = strings.ReplaceAll(output, mkItem("hd"), specs.HD)
 	if len(specs.GPU) >= 1 {
-		gpu1 = specs.GPU[0]
+		output = strings.ReplaceAll(output, mkItem("gpu1"), specs.GPU[0])
+	} else {
+		output = strings.ReplaceAll(output, mkItem("gpu1"), "")
 	}
+
 	if len(specs.GPU) >= 2 {
-		gpu2 = specs.GPU[1]
-	}
-	if len(specs.GPU) >= 3 {
-		gpu3 = specs.GPU[2]
-	}
-	result += fmt.Sprintf("|%sGPU   = %s\n", level, gpu1)
-	result += fmt.Sprintf("|%sGPU2  = %s\n", level, gpu2)
-	if len(gpu3) != 0 {
-		result += fmt.Sprintf("|%sGPU3  = %s\n", level, gpu3)
-	}
-	result += fmt.Sprintf("|%sVRAM  = %s\n", level, specs.VRAM)
-	if len(specs.OGL) != 0 {
-		result += fmt.Sprintf("|%sOGL   = %s\n", level, specs.OGL)
-	}
-	result += fmt.Sprintf("|%sDX    = %s\n", level, specs.DX)
-
-	if len(specs.Other) != 0 {
-		result += fmt.Sprintf("|%sother = %s\n\n", level, specs.Other)
+		gpus := specs.GPU[1]
+		if len(specs.GPU) >= 3 { // if GPU3 is present insert it right after GPU2
+			gpus += "\n|" + level + "GPU3  = " + specs.GPU[2]
+		}
+		output = strings.ReplaceAll(output, mkItem("gpu2"), gpus)
+	} else {
+		output = strings.ReplaceAll(output, mkItem("gpu2"), "")
 	}
 
-	result += "\n"
+	vram := specs.VRAM
+	if len(specs.OGL) != 0 { // if OGL is present insert it after VRAM
+		vram += "\n|" + level + "OGL   = " + specs.OGL
+	}
+	output = strings.ReplaceAll(output, mkItem("vram"), vram)
 
-	return result
+	dx := specs.DX
+	if len(specs.Other) != 0 { // if other is present insert it after DX
+		dx += "\n|" + level + "other = " + specs.Other
+	}
+	output = strings.ReplaceAll(output, mkItem("dx"), dx)
+
+	output = strings.ReplaceAll(output, "$notes$", specs.Notes)
+
+	return output
 }
 
 func CleanRecommended(min SysRequirements, rec SysRequirements) SysRequirements {
@@ -822,78 +832,29 @@ func CleanRecommended(min SysRequirements, rec SysRequirements) SysRequirements 
 	return rec
 }
 
-func emptySpecs(level string) string {
-	return fmt.Sprintf(`|%sTGT   = 
-|%sOS    = 
-|%sCPU   = 
-|%sCPU2  = 
-|%sRAM   = 
-|%sHD    = 
-|%sGPU   = 
-|%sGPU2  = 
-|%sVRAM  = 
-|%sDX    =
-
-`, level, level, level, level, level, level, level, level, level, level)
-}
-
-func altSpecs(notes string) string {
-	return fmt.Sprintf(`<!-- Please see the Editing Guide before filling in the following -->
-|alt1Title = 
-|alt1TGT   = 
-|alt1OS    = 
-|alt1CPU   = 
-|alt1CPU2  = 
-|alt1RAM   = 
-|alt1HD    = 
-|alt1GPU   = 
-|alt1GPU2  = 
-|alt1GPU3  = 
-|alt1VRAM  = 
-
-|alt2Title = 
-|alt2TGT   = 
-|alt2OS    = 
-|alt2CPU   = 
-|alt2CPU2  = 
-|alt2RAM   = 
-|alt2HD    = 
-|alt2GPU   = 
-|alt2GPU2  = 
-|alt2GPU3  = 
-|alt2VRAM  = 
-|notes     = %s`, notes)
-}
-
 func outputPlaform(isMin bool, isRec bool, minspecs string, recspecs string, osname string) string {
-	var output string = ""
-	var specs string = ""
+	var output string = system_requirements_template
 	var reqsmin SysRequirements
 	var reqsrec SysRequirements
 
-	output += "\n{{System requirements\n"
-	output += "|OSfamily = " + osname + "\n\n"
+	output = strings.ReplaceAll(output, "$os_name$", osname)
 
 	if isMin {
 		reqsmin = ProcessSpecs(minspecs, true)
-		specs = textSysRequirements(reqsmin, "min")
-		output += specs
+		output = processSysRequirements(output, reqsmin, "min")
 	} else {
-		output += emptySpecs("min")
+		output = processSysRequirements(output, SysRequirements{}, "min")
 	}
 
 	// Handle recommended specs
 	if isRec {
 		reqsrec = ProcessSpecs(recspecs, false)
 		reqsrec = CleanRecommended(reqsmin, reqsrec)
-		specs = textSysRequirements(reqsrec, "rec")
-		output += specs
+		output = processSysRequirements(output, reqsrec, "rec")
 	} else {
-		output += emptySpecs("rec")
+		output = processSysRequirements(output, SysRequirements{}, "rec")
 	}
 
-	output += altSpecs(reqsmin.Notes)
-	output += "\n}}\n"
 	return output
 }
 
@@ -1036,17 +997,12 @@ func (game *Game) FormatLanguage(language string) string {
 		sanitisedLanguage = "Traditional Chinese"
 	}
 
-	return fmt.Sprintf(`
-{{L10n/switch
- |language  = %s
- |interface = %v
- |audio     = %v
- |subtitles = %v
- |notes     = 
- |fan       = 
- |ref       = 
-}}`,
-		sanitisedLanguage, game.Data.Languages[language].UI, game.Data.Languages[language].Audio, game.Data.Languages[language].Subtitles)
+	output := language_template
+	output = strings.ReplaceAll(output, "$language_name$", sanitisedLanguage)
+	output = strings.ReplaceAll(output, "$language_interface$", strconv.FormatBool(game.Data.Languages[language].UI))
+	output = strings.ReplaceAll(output, "$language_audio$", strconv.FormatBool(game.Data.Languages[language].Audio))
+	output = strings.ReplaceAll(output, "$language_subtitles$", strconv.FormatBool(game.Data.Languages[language].Subtitles))
+	return output
 }
 
 func SanitiseName(name string, title bool) string {
