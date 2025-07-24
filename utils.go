@@ -159,7 +159,7 @@ func fetchGame(gameId string) (err error) {
 	var apiBody []byte
 	var scrapeBody []byte
 
-	response, err = makeRequest(fmt.Sprintf("%s%s%s", API_LINK, gameId, LOCALE))
+	response, err = makeRequest(fmt.Sprintf("%s%s%s&cc=us", API_LINK, gameId, LOCALE))
 	if err = checkRequest(response, err); err != nil {
 		return
 	}
@@ -187,7 +187,7 @@ func fetchGame(gameId string) (err error) {
 	// 	fmt.Println("Game cover download failed")
 	// }
 
-	optionalResponse, optionalErr := makeRequest(fmt.Sprintf("https://store.steampowered.com/app/%s/%s", gameId, LOCALE))
+	optionalResponse, optionalErr := makeRequest(fmt.Sprintf("https://store.steampowered.com/app/%s/?cc=us%s", gameId, LOCALE))
 	if optionalErr = checkRequest(response, optionalErr); optionalErr == nil {
 		defer optionalResponse.Body.Close()
 		scrapeBody, _ = parseResponseToBody(optionalResponse)
