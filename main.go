@@ -59,7 +59,9 @@ func main() {
 	var output string = game_article_template
 
 	fmt.Println("* [2/26] Adding app cover")
-	output = strings.ReplaceAll(output, "$game_title$", SanitiseName(game.Data.Name, true))
+	title := SanitiseName(game.Data.Name, true)
+	title = strings.ReplaceAll(title, ":", "") // also remove colons from the cover filename
+	output = strings.ReplaceAll(output, "$game_title$", title)
 
 	fmt.Println("* [3/26] Adding app developers")
 	var developers string = ""
