@@ -609,6 +609,7 @@ func fixMemSize(input string) string {
 	if l != nil {
 		input = input[:l[0]+1] + " " + input[l[0]+1:]
 	}
+	input = strings.ReplaceAll(input, "  ", " ")
 	return input
 }
 
@@ -622,6 +623,7 @@ func ProcessSpecs(input string, isMin bool) SysRequirements {
 	input = strings.ReplaceAll(input, " or higher", "")
 	input = strings.ReplaceAll(input, " or lower", "")
 	input = strings.ReplaceAll(input, " or equivalent", "")
+	input = strings.ReplaceAll(input, " and above", "")
 	input = strings.ReplaceAll(input, "Ghz", "GHz")
 	input = strings.ReplaceAll(input, "ghz", "GHz")
 	input = strings.ReplaceAll(input, "GHz", " GHz")
