@@ -294,7 +294,11 @@ func main() {
 	availability_row = strings.ReplaceAll(availability_row, "$store_oses$", platforms)
 
 	if len(game.Data.Packages) == 0 {
-		availability_row = strings.ReplaceAll(availability_row, "$store_unavailable$", "| unavailable ")
+		if game.Data.ReleaseDate.ComingSoon {
+			availability_row = strings.ReplaceAll(availability_row, "$store_unavailable$", "| upcoming ")
+		} else {
+			availability_row = strings.ReplaceAll(availability_row, "$store_unavailable$", "| unavailable ")
+		}
 	} else {
 		availability_row = strings.ReplaceAll(availability_row, "$store_unavailable$", "")
 	}
@@ -363,7 +367,7 @@ func main() {
 	fmt.Println("* [12/26] Processing Microtransactions!")
 
 	if !game.HasCategory(InAppPurchases) {
-		output = strings.ReplaceAll(output, "$microtransactions_none$", "None")
+		output = strings.ReplaceAll(output, "$microtransactions_none$", "The game does not contain microtransactions.")
 	} else {
 		output = strings.ReplaceAll(output, "$microtransactions_none$", "")
 	}

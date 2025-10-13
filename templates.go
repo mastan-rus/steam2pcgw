@@ -62,7 +62,6 @@ const game_article_template = `{{stub}}
 |freeware                    = 
 |free-to-play                = $monetization_free_to_play$
 |one-time game purchase      = $monetization_purchase$
-|sponsored                   = 
 |subscription                = 
 |subscription gaming service = 
 }}
@@ -135,6 +134,9 @@ $dlcs$
 |upscaling                  = unknown
 |upscaling tech             = 
 |upscaling notes            = 
+|framegen                   = unknown
+|framegen tech              = 
+|framegen notes             = 
 |vsync                      = unknown
 |vsync notes                = 
 |60 fps                     = unknown
@@ -207,7 +209,7 @@ $dlcs$
 |other button prompts notes= 
 |controller hotplug        = unknown
 |controller hotplug notes  = 
-|input prompt override  = unknown
+|input prompt override     = unknown
 |input prompt override notes = 
 |haptic feedback           = unknown
 |haptic feedback notes     = 
