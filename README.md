@@ -13,7 +13,7 @@ Well, it's certainly up to you to decide whether you want to use it or not, and 
 
 ## Version
 
-v0.0.76
+v0.0.77
 
 ## How To
 
@@ -74,6 +74,7 @@ v0.0.76
 - [x] Availability: Steam (Game editions are automatically added)
 - [x] Availability: Other Stores (if available on IsThereAnyDeals)
 - [x] Availability: 3rd Party Account Requirements and DRM Notices (Denuvo only).
+- [x] Availability: Demo
 - [ ] Monetization: Ad-Supported
 - [ ] Monetization: DLC
 - [ ] Monetization: Expansion Pack

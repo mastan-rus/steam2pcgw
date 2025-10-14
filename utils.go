@@ -146,6 +146,25 @@ func checkRequest(response *http.Response, err error) error {
 	return err
 }
 
+func getRedirectUrl(url string) string {
+	var result string
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			result = req.URL.String()
+			return http.ErrUseLastResponse // Prevent following the redirect
+		},
+	}
+
+	_, err := client.Get(url)
+	if err != nil {
+		fmt.Printf("Failed to get redirect URL (error: %s)", err)
+		result = ""
+	}
+
+	return result
+}
+
 func parseResponseToBody(response *http.Response) (body []byte, err error) {
 	body, err = io.ReadAll(response.Body)
 	if err != nil {

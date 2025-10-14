@@ -51,7 +51,7 @@ const game_article_template = `{{stub}}
 
 ==Availability==
 {{Availability|$availability_rows$
-}}$availability_info$
+}}$availability_info$$demo_info$
 
 ==Monetization==
 {{Monetization

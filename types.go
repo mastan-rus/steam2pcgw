@@ -21,6 +21,7 @@ type Data struct {
 	LinuxRequirements     Requirement    `json:"linux_requirements,omitempty"`
 	Developers            []string       `json:"developers"`
 	Publishers            []string       `json:"publishers"`
+	Demos                 []Demos        `json:"demos,omitempty"`
 	Packages              []int64        `json:"packages"`
 	PackageGroups         []PackageGroup `json:"package_groups"`
 	Platforms             Platforms      `json:"platforms"`
@@ -80,6 +81,11 @@ type SteamGenre struct {
 }
 
 type Requirement map[string]interface{}
+
+type Demos struct {
+	AppID       int    `json:"appid"`
+	Description string `json:"description"`
+}
 
 type Rating struct {
 	Score int    `json:"score"`
