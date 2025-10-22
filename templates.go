@@ -32,6 +32,7 @@ const game_article_template = `{{stub}}
 |hltb         = 
 |lutris       = 
 |mobygames    = 
+|vndb         = 
 |strategywiki = 
 |wikipedia    = 
 |winehq       = 
