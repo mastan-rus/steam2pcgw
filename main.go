@@ -357,6 +357,7 @@ func main() {
 		fmt.Printf("Demo with appid %v found!\n", game.Data.Demos[0].AppID)
 		// Check if demo page is redirected or not. If not it has its own Steam page. Otherwise it's redirected to the parent game page.
 		redir := getRedirectUrl(fmt.Sprintf("https://store.steampowered.com/app/%d/", game.Data.Demos[0].AppID))
+		demo_info += "\n\n===Demo===";
 		if len(redir) == 0 {
 			// demo with its own Steam page
 			demo_info += fmt.Sprintf("\n{{ii}} A demo is available from {{store link|Steam|%d}}.", game.Data.Demos[0].AppID)

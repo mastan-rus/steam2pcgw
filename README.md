@@ -13,7 +13,7 @@ Well, it's certainly up to you to decide whether you want to use it or not, and 
 
 ## Version
 
-v0.0.78
+v0.0.79
 
 ## How To
 

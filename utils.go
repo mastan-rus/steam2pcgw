@@ -619,7 +619,7 @@ func (game *Game) FindDirectX() string {
 }
 
 func splitChars(r rune) bool {
-	return r == '/' || r == '／' || r == ','
+	return r == '/' || r == '／' || r == ',' || r == '|'
 }
 
 func fixMemSize(input string) string {
