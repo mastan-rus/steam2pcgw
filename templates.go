@@ -97,8 +97,10 @@ $dlcs$
 |epic games launcher notes = 
 |gog galaxy                = 
 |gog galaxy notes          = 
-|origin                    = 
-|origin notes              = 
+|ea app                    = 
+|ea app notes              = 
+|icloud                    = 
+|icloud notes              = 
 |steam cloud               = $steam_cloud$
 |steam cloud notes         = 
 |ubisoft connect           = 

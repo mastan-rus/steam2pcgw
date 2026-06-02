@@ -91,19 +91,6 @@ func UnmarshalGame(data []byte) (result Game, err error) {
 		result.SetThemes(appTags)
 	}
 
-	// Is There Any Deals
-	response, optionalErr := makeRequest(fmt.Sprintf("https://isthereanydeal.com/steam/app/%s", gameId))
-	if optionalErr = checkRequest(response, optionalErr); optionalErr == nil {
-		defer response.Body.Close()
-		body, _ := parseResponseToBody(response)
-		htmlString := string(body)
-
-		result.parseReviews(htmlString)
-		result.parseAvailability(htmlString)
-	} else {
-		fmt.Println("Failed to scrape IsThereAnyDeals page...")
-	}
-
 	return
 }
 
