@@ -152,6 +152,33 @@ func getRedirectUrl(url string) string {
 	return result
 }
 
+func getNoRedirectStatusCode(url string) int {
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse // Prevent following the redirect
+		},
+	}
+
+	res, err := client.Get(url)
+	var result = res.StatusCode
+
+	if err != nil {
+		fmt.Printf("Failed to do web request (error: %s)", err)
+		result = 0
+	}
+
+	return result
+}
+
+func getLikelyLutrisName(name string) string {
+	var result string
+	result = strings.ToLower(name)
+	var nonSymbolRegexp = regexp.MustCompile(`[^a-z0-9 ]+`)
+	result = nonSymbolRegexp.ReplaceAllString(result, "")
+	result = strings.Join(strings.Fields(result), "-")
+	return result
+}
+
 func parseResponseToBody(response *http.Response) (body []byte, err error) {
 	body, err = io.ReadAll(response.Body)
 	if err != nil {

@@ -231,6 +231,13 @@ func main() {
 		output = strings.ReplaceAll(output, "$official_site$", game.Data.SupportInfo.URL)
 	}
 
+	lutris_name := getLikelyLutrisName(title)
+	lutris_status := getNoRedirectStatusCode(`https://lutris.net/games/` + lutris_name + `/`)
+	if lutris_status != 200 {
+		lutris_name = ""
+	}
+	output = strings.ReplaceAll(output, "$lutris$", lutris_name)
+
 	fmt.Println("* [9/26] Processing introduction...")
 
 	fmt.Println("* [10/26] Processing Availability!")
@@ -357,13 +364,13 @@ func main() {
 		fmt.Printf("Demo with appid %v found!\n", game.Data.Demos[0].AppID)
 		// Check if demo page is redirected or not. If not it has its own Steam page. Otherwise it's redirected to the parent game page.
 		redir := getRedirectUrl(fmt.Sprintf("https://store.steampowered.com/app/%d/", game.Data.Demos[0].AppID))
-		demo_info += "\n\n===Demo===";
+		demo_info += "\n\n===Demo==="
 		if len(redir) == 0 {
 			// demo with its own Steam page
-			demo_info += fmt.Sprintf("\n{{ii}} A demo is available from {{store link|Steam|%d}}.", game.Data.Demos[0].AppID)
+			demo_info += fmt.Sprintf("\n{{ii}} A demo is available on {{store link|Steam|%d}}.", game.Data.Demos[0].AppID)
 		} else {
 			// demo without Steam page
-			demo_info += fmt.Sprintf("\n{{ii}} A demo is available from [steam://install/%d Steam].", game.Data.Demos[0].AppID)
+			demo_info += fmt.Sprintf("\n{{ii}} A demo is available on [steam://install/%d Steam].", game.Data.Demos[0].AppID)
 		}
 	}
 
