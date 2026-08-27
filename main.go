@@ -618,6 +618,12 @@ func main() {
 		output = strings.ReplaceAll(output, "$network$", "")
 	}
 
+	if game.HasCategory(CrossPlatformMultiplayer) {
+		output = strings.ReplaceAll(output, "$crossplay$", "true")
+	} else {
+		output = strings.ReplaceAll(output, "$crossplay$", "")
+	}
+
 	fmt.Println("* [22/26] Processing VR!")
 	if game.HasCategory(VRSupport) || game.HasCategory(VRSupported) || game.HasCategory(VROnly) {
 		vr := vr_template

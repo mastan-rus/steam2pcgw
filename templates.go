@@ -401,7 +401,7 @@ const network_template = `
 |online play notes    = 
 |asynchronous         = 
 |asynchronous notes   = 
-|crossplay            = 
+|crossplay            = $crossplay$
 |crossplay platforms  = 
 |crossplay notes      = 
 }}{{Network/Connections
