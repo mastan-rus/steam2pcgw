@@ -265,6 +265,9 @@ func main() {
 
 		for _, sub := range v.Subs {
 			edition := RemoveTags(sub.OptionText, "")
+			if !strings.Contains(strings.ToLower(edition), "edition") { // ignore anything that doesn't contain "edition"
+				continue
+			}
 			fmt.Println(edition)
 			edition = strings.ReplaceAll(edition, SanitiseName(game.Data.Name, true), "")
 			edition = strings.TrimSpace(edition)
