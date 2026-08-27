@@ -302,7 +302,7 @@ func main() {
 	availability_row := availability_template
 	availability_row = strings.ReplaceAll(availability_row, "$store_name$", "Steam")
 	availability_row = strings.ReplaceAll(availability_row, "$store_id$", gameId)
-	availability_row = strings.ReplaceAll(availability_row, "$store_drm$", "Steam")
+	availability_row = strings.ReplaceAll(availability_row, "$store_drm$", "unknown")
 	availability_row = strings.ReplaceAll(availability_row, "$store_editions$", editionList)
 	availability_row = strings.ReplaceAll(availability_row, "$store_oses$", platforms)
 
