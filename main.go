@@ -532,15 +532,24 @@ func main() {
 		controller = true
 	}
 
-	output = strings.ReplaceAll(output, "$controller_support$", strconv.FormatBool(controller))
 	if controller {
+		output = strings.ReplaceAll(output, "$controller_support$", strconv.FormatBool(controller))
 		if *game.Data.ControllerSupport == "full" {
 			output = strings.ReplaceAll(output, "$full_controller$", "true")
 		} else {
 			output = strings.ReplaceAll(output, "$full_controller$", "false")
 		}
 	} else {
-		output = strings.ReplaceAll(output, "$full_controller$", "unknown")
+		if game.HasCategory(FullControllerSupport) {
+			output = strings.ReplaceAll(output, "$controller_support$", "true")
+			output = strings.ReplaceAll(output, "$full_controller$", "true")
+		} else if game.HasCategory(PartialControllerSupport) {
+			output = strings.ReplaceAll(output, "$controller_support$", "true")
+			output = strings.ReplaceAll(output, "$full_controller$", "false")
+		} else {
+			output = strings.ReplaceAll(output, "$controller_support$", "unknown")
+			output = strings.ReplaceAll(output, "$full_controller$", "unknown")
+		}
 	}
 
 	if game.HasCategory(TrackedControllerSupport) {
