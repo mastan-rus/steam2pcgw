@@ -569,8 +569,15 @@ func main() {
 
 	orderedLangauges := make([]string, 0, len(game.Data.Languages))
 	for key := range game.Data.Languages {
-		sanitisedKey := key
-		orderedLangauges = append(orderedLangauges, sanitisedKey)
+		sanitizedKey := key
+		// Changing sort order for the Latin American Spanish to come after Spanish and Brazilian Portuguese come after Portuguese.
+		switch key {
+		case "Spanish - Spain":
+			sanitizedKey = "Spanish"
+		case "Portuguese - Portugal":
+			sanitizedKey = "Portuguese"
+		}
+		orderedLangauges = append(orderedLangauges, sanitizedKey)
 	}
 
 	sort.Strings(orderedLangauges)
