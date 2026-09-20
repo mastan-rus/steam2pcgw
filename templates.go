@@ -11,6 +11,7 @@ const game_article_template = `{{stub}}
 {{Infobox game/row/reception|Metacritic|$metacritic_link$|$metacritic_rating$}}
 {{Infobox game/row/reception|OpenCritic|$opencritic_link$|$opencritic_rating$}}
 {{Infobox game/row/reception|IGDB|$igdb_link$|$igdb_rating$}}
+|real_ai_level = unknown
 |taxonomy     =
 {{Infobox game/row/taxonomy/monetization      | $taxonomy_monetization$ }}
 {{Infobox game/row/taxonomy/microtransactions | $taxonomy_microtransactions$ }}
@@ -290,6 +291,20 @@ $dlcs$
 }}
 $network$$vrsupport$
 ==Other information==
+===AI usage===
+{{AI usage
+|code         = 
+|2d graphics  = 
+|3d graphics  = 
+|animation    = 
+|audio        = 
+|speech       = 
+|video        = 
+|text         = 
+|localization = 
+|concept      = 
+}}
+
 ===API===
 {{API
 |direct3d versions      = $d3d_versions$
