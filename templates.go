@@ -11,7 +11,7 @@ const game_article_template = `{{stub}}
 {{Infobox game/row/reception|Metacritic|$metacritic_link$|$metacritic_rating$}}
 {{Infobox game/row/reception|OpenCritic|$opencritic_link$|$opencritic_rating$}}
 {{Infobox game/row/reception|IGDB|$igdb_link$|$igdb_rating$}}
-|real_ai_level = unknown
+|real ai level= unknown
 |taxonomy     =
 {{Infobox game/row/taxonomy/monetization      | $taxonomy_monetization$ }}
 {{Infobox game/row/taxonomy/microtransactions | $taxonomy_microtransactions$ }}
